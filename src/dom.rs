@@ -5,19 +5,19 @@ use std::{
 
 pub type AttrMap = HashMap<String, String>;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Node {
     pub children: Vec<Node>,
     pub node_type: NodeType,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum NodeType {
     Element(ElementData),
     Text(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ElementData {
     pub tag_name: String,
     pub attributes: AttrMap,
