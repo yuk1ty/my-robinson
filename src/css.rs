@@ -195,7 +195,7 @@ impl Parser {
 
     fn parse_value(&mut self) -> Value {
         match self.next_char() {
-            '0'...'9' => self.parse_length(),
+            '0'..='9' => self.parse_length(),
             '#' => self.parse_color(),
             _ => Value::Keyword(self.parse_identifier()),
         }
@@ -207,7 +207,7 @@ impl Parser {
 
     fn parse_float(&mut self) -> f32 {
         let s = self.consume_while(|c| match c {
-            '0'...'9' | '.' => true,
+            '0'..='9' | '.' => true,
             _ => false,
         });
         s.parse().unwrap()
@@ -281,7 +281,7 @@ impl Parser {
 
 fn valid_identifier_char(c: char) -> bool {
     match c {
-        'a'...'z' | 'A'...'Z' | '0'...'9' | '-' | '_' => true, // TODO: Include U+00A0 and higher.
+        'a'..='z' | 'A'..='Z' | '0'..='9' | '-' | '_' => true, // TODO: Include U+00A0 and higher.
         _ => false,
     }
 }
