@@ -291,15 +291,38 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_css_parsing() {
+    fn test_h1_single_styling() {
         assert_eq!(
             parse(
                 r#"
-                h1, h2, h3 { margin: auto; color: #cc0000; }
+                h1 { margin: auto; color: #cc0000; }
         "#
                 .to_string(),
             ),
-            Stylesheet { rules: Vec::new() }
+            Stylesheet {
+                rules: vec![Rule {
+                    selectors: vec![Selector::Simple(SimpleSelector {
+                        tag_name: Some("h1".to_string()),
+                        id: None,
+                        class: vec![]
+                    })],
+                    declarations: vec![
+                        Declaration {
+                            name: "margin".to_string(),
+                            value: Value::Keyword("auto".to_string())
+                        },
+                        Declaration {
+                            name: "color".to_string(),
+                            value: Value::ColorValue(Color {
+                                r: 204,
+                                g: 0,
+                                b: 0,
+                                a: 255
+                            })
+                        }
+                    ]
+                }]
+            }
         );
     }
 }
