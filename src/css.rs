@@ -295,7 +295,7 @@ mod tests {
         assert_eq!(
             parse(
                 r#"
-                h1 { margin: auto; color: #cc0000; }
+                h1.headline { margin: auto; color: #cc0000; }
         "#
                 .to_string(),
             ),
@@ -304,7 +304,7 @@ mod tests {
                     selectors: vec![Selector::Simple(SimpleSelector {
                         tag_name: Some("h1".to_string()),
                         id: None,
-                        class: vec![]
+                        class: vec!["headline".to_string()]
                     })],
                     declarations: vec![
                         Declaration {
