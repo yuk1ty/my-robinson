@@ -1,3 +1,5 @@
+use crate::style::StyledNode;
+
 struct Dimensions {
     content: Rect,
     padding: EdgeSizes,
