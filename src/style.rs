@@ -7,6 +7,7 @@ use crate::{
 
 type PropertyMap = HashMap<String, Value>;
 
+#[derive(Debug, PartialEq)]
 pub struct StyledNode<'a> {
     node: &'a Node,
     specified_values: PropertyMap,
@@ -107,4 +108,62 @@ fn matches_simple_selector(elem: &ElementData, selector: &SimpleSelector) -> boo
     }
 
     true
+}
+
+#[cfg(test)]
+mod test {
+    use crate::{
+        css::{self, Color},
+        html,
+    };
+
+    use super::*;
+
+    #[test]
+    fn test_style() {
+        let html_node = html::parse(r#"<h1 class="test">head line</h1>"#.to_string());
+        let stylesheet = css::parse(r#".test { color: #000000; }"#.to_string());
+        let actual = style_tree(&html_node, &stylesheet);
+
+        assert_eq!(
+            actual,
+            StyledNode {
+                node: &Node {
+                    children: vec![Node {
+                        children: vec![],
+                        node_type: NodeType::Text("head line".to_string())
+                    }],
+                    node_type: NodeType::Element(ElementData {
+                        tag_name: "h1".to_string(),
+                        attributes: {
+                            let mut ret = HashMap::new();
+                            ret.insert("class".to_string(), "test".to_string());
+                            ret
+                        }
+                    })
+                },
+                specified_values: {
+                    let mut ret = HashMap::new();
+                    ret.insert(
+                        "color".to_string(),
+                        Value::ColorValue(Color {
+                            r: 0,
+                            g: 0,
+                            b: 0,
+                            a: 255,
+                        }),
+                    );
+                    ret
+                },
+                children: vec![StyledNode {
+                    node: &Node {
+                        children: vec![],
+                        node_type: NodeType::Text("head line".to_string()),
+                    },
+                    specified_values: HashMap::new(),
+                    children: vec![]
+                }]
+            }
+        );
+    }
 }
