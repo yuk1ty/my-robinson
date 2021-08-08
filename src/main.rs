@@ -4,6 +4,7 @@ use iced::{
     canvas::{Frame, Path, Program},
     executor, Application, Color, Command, Length, Point, Settings, Size,
 };
+use rayon::prelude::*;
 
 use crate::painting::Canvas;
 
@@ -81,23 +82,29 @@ impl<'a> Program<()> for RenderingCanvas<'a> {
         _bounds: iced::Rectangle,
         _cursor: iced::canvas::Cursor,
     ) -> Vec<iced::canvas::Geometry> {
-        let mut frame = Frame::new(Size::new(self.width as f32, self.height as f32));
+        let pixels = (1..self.width)
+            .flat_map(|x| (1..self.height).map(move |y| (x, y)))
+            .into_iter();
 
-        (1..self.width).for_each(|x| {
-            (1..self.height).for_each(|y| {
-                let px = Path::rectangle(
-                    Point::new(x as f32, y as f32),
-                    iced::Size {
-                        width: 1.0,
-                        height: 1.0,
-                    },
-                );
-
-                let color = self.pixels[y * self.width + x];
-
-                frame.fill(&px, color);
-            })
+        let colors = pixels.map(|(x, y)| {
+            let px = Path::rectangle(
+                Point::new(x as f32, y as f32),
+                iced::Size {
+                    width: 1.0,
+                    height: 1.0,
+                },
+            );
+            let color = self.pixels[y * self.width + x];
+            (px, color)
         });
+
+        let frame = colors.fold(
+            Frame::new(Size::new(self.width as f32, self.height as f32)),
+            |mut acc, (px, color)| {
+                acc.fill(&px, color);
+                acc
+            },
+        );
 
         vec![frame.into_geometry()]
     }
