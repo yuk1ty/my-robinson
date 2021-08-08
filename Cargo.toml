@@ -7,4 +7,3 @@ edition = "2018"
 
 [dependencies]
 iced = { version = "0.3.0", features=["canvas"] }
-rayon = "1.5.1"

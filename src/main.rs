@@ -4,7 +4,6 @@ use iced::{
     canvas::{Frame, Path, Program},
     executor, Application, Color, Command, Length, Point, Settings, Size,
 };
-use rayon::prelude::*;
 
 use crate::painting::Canvas;
 
