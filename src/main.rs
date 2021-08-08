@@ -1,3 +1,5 @@
+use std::{fs::File, io::Read};
+
 use iced::{
     canvas::{Frame, Path, Program},
     executor, Application, Color, Command, Length, Point, Settings, Size,
@@ -18,8 +20,8 @@ struct GUI {
     height: usize,
 }
 
-struct RenderingCanvas {
-    pixels: Vec<Color>,
+struct RenderingCanvas<'a> {
+    pixels: &'a Vec<Color>,
     width: usize,
     height: usize,
 }
@@ -63,9 +65,9 @@ impl Application for GUI {
 
     fn view(&mut self) -> iced::Element<'_, Self::Message> {
         iced::Canvas::new(RenderingCanvas {
-            pixels: vec![Color::BLACK, Color::BLACK, Color::BLACK],
-            width: 3,
-            height: 1,
+            pixels: &self.pixels,
+            width: self.width,
+            height: self.height,
         })
         .width(Length::Fill)
         .height(Length::Fill)
@@ -73,7 +75,7 @@ impl Application for GUI {
     }
 }
 
-impl Program<()> for RenderingCanvas {
+impl<'a> Program<()> for RenderingCanvas<'a> {
     fn draw(
         &self,
         _bounds: iced::Rectangle,
@@ -81,28 +83,55 @@ impl Program<()> for RenderingCanvas {
     ) -> Vec<iced::canvas::Geometry> {
         let mut frame = Frame::new(Size::new(self.width as f32, self.height as f32));
 
-        self.pixels.iter().for_each(|pixel| {
-            let px = Path::rectangle(
-                Point::new(0.0, 0.0),
-                iced::Size {
-                    width: 1.0,
-                    height: 1.0,
-                },
-            );
+        (1..self.width).for_each(|x| {
+            (1..self.height).for_each(|y| {
+                let px = Path::rectangle(
+                    Point::new(x as f32, y as f32),
+                    iced::Size {
+                        width: 1.0,
+                        height: 1.0,
+                    },
+                );
 
-            frame.fill(&px, *pixel);
+                let color = self.pixels[y * self.width + x];
+
+                frame.fill(&px, color);
+            })
         });
 
         vec![frame.into_geometry()]
     }
 }
 
+fn read_source(filename: String) -> String {
+    let mut str = String::new();
+    File::open(filename)
+        .unwrap()
+        .read_to_string(&mut str)
+        .unwrap();
+    str
+}
+
 fn main() -> iced::Result {
+    let mut viewport: layout::Dimensions = Default::default();
+    viewport.content.width = 800.0;
+    viewport.content.height = 600.0;
+
+    let html = read_source("test/test.html".to_string());
+    let css = read_source("test/test.css".to_string());
+
+    let root_node = html::parse(html);
+    let stylesheet = css::parse(css);
+    let style_root = style::style_tree(&root_node, &stylesheet);
+    let layout_root = layout::layout_tree(&style_root, viewport);
+
+    let canvas = painting::paint(&layout_root, viewport.content);
+
     GUI::run(Settings::with_flags(GUIProps {
         canvas: Canvas {
-            pixels: vec![],
-            width: 800,
-            height: 800,
+            pixels: canvas.pixels,
+            width: viewport.content.width as usize,
+            height: viewport.content.height as usize,
         },
     }))
 }

@@ -5,7 +5,7 @@ use crate::{
 
 #[derive(Default, Clone, Copy)]
 pub struct Dimensions {
-    content: Rect,
+    pub content: Rect,
     pub padding: EdgeSizes,
     pub border: EdgeSizes,
     pub margin: EdgeSizes,
@@ -241,7 +241,18 @@ pub enum BoxType<'a> {
     AnonymousBlock,
 }
 
-fn build_layout_tree<'a>(style_node: &'a StyledNode<'a>) -> LayoutBox<'a> {
+pub fn layout_tree<'a>(
+    node: &'a StyledNode<'a>,
+    mut containing_block: Dimensions,
+) -> LayoutBox<'a> {
+    containing_block.content.height = 0.0;
+
+    let mut root_box = build_layout_tree(node);
+    root_box.layout(containing_block);
+    root_box
+}
+
+pub fn build_layout_tree<'a>(style_node: &'a StyledNode<'a>) -> LayoutBox<'a> {
     let mut root = LayoutBox::new(match style_node.display() {
         Block => BoxType::BlockNode(style_node),
         Inline => BoxType::InlineNode(style_node),

@@ -9,6 +9,7 @@ enum DisplayCommand {
     SolidColor(Color, Rect),
 }
 
+#[derive(Debug)]
 pub struct Canvas {
     pub pixels: Vec<Color>,
     pub width: usize,
