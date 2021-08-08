@@ -1,5 +1,9 @@
-use iced::{executor, Application, Color, Command, Settings};
-use painting::Canvas;
+use iced::{
+    canvas::{Frame, Path, Program},
+    executor, Application, Color, Command, Length, Point, Settings, Size,
+};
+
+use crate::painting::Canvas;
 
 mod css;
 mod dom;
@@ -9,6 +13,12 @@ mod painting;
 mod style;
 
 struct GUI {
+    pixels: Vec<Color>,
+    width: usize,
+    height: usize,
+}
+
+struct RenderingCanvas {
     pixels: Vec<Color>,
     width: usize,
     height: usize,
@@ -31,12 +41,7 @@ impl Application for GUI {
                 .canvas
                 .pixels
                 .iter()
-                .map(|color| Color {
-                    r: color.r as f32,
-                    g: color.g as f32,
-                    b: color.b as f32,
-                    a: color.a as f32,
-                })
+                .map(|color| Color::from_rgba8(color.r, color.g, color.b, color.a as f32))
                 .collect(),
             width: flags.canvas.width,
             height: flags.canvas.height,
@@ -57,7 +62,38 @@ impl Application for GUI {
     }
 
     fn view(&mut self) -> iced::Element<'_, Self::Message> {
-        todo!()
+        iced::Canvas::new(RenderingCanvas {
+            pixels: vec![Color::BLACK, Color::BLACK, Color::BLACK],
+            width: 3,
+            height: 1,
+        })
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
+    }
+}
+
+impl Program<()> for RenderingCanvas {
+    fn draw(
+        &self,
+        _bounds: iced::Rectangle,
+        _cursor: iced::canvas::Cursor,
+    ) -> Vec<iced::canvas::Geometry> {
+        let mut frame = Frame::new(Size::new(self.width as f32, self.height as f32));
+
+        self.pixels.iter().for_each(|pixel| {
+            let px = Path::rectangle(
+                Point::new(0.0, 0.0),
+                iced::Size {
+                    width: 1.0,
+                    height: 1.0,
+                },
+            );
+
+            frame.fill(&px, *pixel);
+        });
+
+        vec![frame.into_geometry()]
     }
 }
 
